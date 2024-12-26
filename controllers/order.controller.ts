@@ -181,6 +181,8 @@ export const addOrder = CatchAsyncError(async(req: Request, res: Response, next:
     try {
         const {id: orderId} = req.params;
         let {billPayment, customerId} = req.body;
+        const createdBy= req.user._id;
+
         // billPayment = parseInt(billPayment,10);
         const order = await OrderModel.findById(orderId);
         if(!order){
@@ -283,7 +285,7 @@ export const addOrder = CatchAsyncError(async(req: Request, res: Response, next:
 
         let transaction:any;
         if(billPayment>0){
-            transaction = await TransactionModel.create({type:"sale",amount: billPayment, description:`${customer.name} ${year}-${month}-${day}`, orderId})
+            transaction = await TransactionModel.create({createdBy,type:"sale",amount: billPayment, description:`${customer.name} ${year}-${month}-${day}`, orderId})
         }
         res.status(200).json({
             success: true,

@@ -122,6 +122,7 @@ export const returnUdhar = CatchAsyncError(async(req: Request, res: Response, ne
     try {
         const { id } = req.params; // Extract the id from params
         const {returnUdhar} = req.body
+        const createdBy= req.user._id;
 
         // Find the customer by ID
         const customer = await CustomerModel.findById(id);
@@ -134,7 +135,7 @@ export const returnUdhar = CatchAsyncError(async(req: Request, res: Response, ne
             return next(new ErrorHandler("Cannot pay more than udhar amount",400))
         }
         const type="sale";
-        const transaction = await TransactionModel.create({type, amount: returnUdhar, description:`${customer.name}-${customer.address} paid from his udhar ${customer.udhar}`})
+        const transaction = await TransactionModel.create({createdBy,type, amount: returnUdhar, description:`${customer.name}-${customer.address} paid from his udhar ${customer.udhar}`})
         if(!transaction){
             return next(new ErrorHandler("Couldn't make transaction",500))
         }

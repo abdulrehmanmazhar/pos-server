@@ -122,6 +122,8 @@ export const restockProduct = CatchAsyncError(async(req: Request, res: Response,
     try {
         const { price, stockQty, discount, totalBill } = req.body;
         const {id} = req.params;
+        const createdBy= req.user._id;
+
         let inStock = false;
         if(!(price && stockQty && totalBill)){
             return next(new ErrorHandler("something is missing",400))
@@ -144,7 +146,7 @@ export const restockProduct = CatchAsyncError(async(req: Request, res: Response,
         history.push(historyIndices)
         const data = {price, stockQty: targetProduct.stockQty+stockQty, discount, totalBill, purchasePrice, history};
         const editedOne = await ProductModel.findByIdAndUpdate(id,{$set:data},{new: true})
-        await TransactionModel.create({type:"investment",amount: totalBill, description:`restocked the product ${targetProduct.name}(${targetProduct.category})`})
+        await TransactionModel.create({createdBy,type:"investment",amount: totalBill, description:`restocked the product ${targetProduct.name}(${targetProduct.category})`})
 
         res.status(200).json({
             success:true,

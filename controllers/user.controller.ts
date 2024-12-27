@@ -146,8 +146,8 @@ export const LoginUser = CatchAsyncError(async(req: Request, res: Response, next
 
 export const logoutUser = CatchAsyncError(async(req: Request, res: Response, next: NextFunction)=>{
     try {
-        res.cookie("access_token", "", {maxAge: 1});
-        res.cookie("refresh_token", "", {maxAge: 1});
+        res.cookie("access_token", "", {maxAge: 1,sameSite:"none", secure:true});
+        res.cookie("refresh_token", "", {maxAge: 1,sameSite:"none", secure:true});
         const userId = req.user?._id || "";
         res.status(201).json({
             success: true,

@@ -386,3 +386,25 @@ export const deleteUser = CatchAsyncError(async(req: Request, res: Response, nex
         
     }
 })
+
+export const addUser = CatchAsyncError(async(req: Request, res: Response, next: NextFunction)=>{
+    try {
+        const {name, email, password} = req.body;
+        const isEmailExist = await userModel.findOne({email});
+        if(isEmailExist){
+            return next(new ErrorHandler('Email already exist', 400))
+        }
+
+
+        const user = await userModel.create({
+            name,
+            email,
+            password
+        })
+        res.status(201).json({
+            success: true,
+        })
+    } catch (error) {
+        return next(new ErrorHandler(error.message,400));
+    }
+});

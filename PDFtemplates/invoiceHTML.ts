@@ -2,18 +2,12 @@ import userModel from "../models/user.model";
 import ErrorHandler from "../utils/ErrorHandler";
 
 export const invoiceHTML = async (billData: any) => {
-  const { order, customer, billPayment, subTotal, discount, instructionNote } = billData;
+  const { order, customer, billPayment, subTotal, discount, instructionNote, orderTaker } = billData;
   const { name, address, contact, udhar } = customer;
   const { cart, total, payment, createdBy } = order;
 
   // Fetch the username of the creator
-  let username = "Unknown";
-  try {
-    const user = await userModel.findById(createdBy);
-    if (user?.name) username = user.name;
-  } catch (error) {
-    throw new ErrorHandler("Failed to retrieve user details.", 400);
-  }
+  
 
   // Calculate remaining credit
   const credit = Number(udhar) - (Number(subTotal) - Number(billPayment));
@@ -131,7 +125,7 @@ export const invoiceHTML = async (billData: any) => {
         <div class="company-details">
           <p><strong>Contact:</strong> 03436768695</p>
           <p><strong>Sales Manager:</strong> Talha Ahsan</p>
-          <p><strong>Order Taker:</strong> ${username}</p>
+          <p><strong>Order Taker:</strong> ${orderTaker}</p>
         </div>
       </div>
 

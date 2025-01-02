@@ -206,6 +206,15 @@ export const addOrder = CatchAsyncError(async(req: Request, res: Response, next:
         order.total = total;
 
 
+        let orderTaker = "Unknown";
+  try {
+    const user = await userModel.findById(order.createdBy);
+    if (user?.name) orderTaker = user.name;
+  } catch (error) {
+    return next( new ErrorHandler("Failed to retrieve user details.", 400));
+  }
+
+
         // const calculateBill = (cart: any) =>{
         //     for(const item of cart){
         //         return total+=item.qty*(item.product.price);
@@ -256,7 +265,7 @@ export const addOrder = CatchAsyncError(async(req: Request, res: Response, next:
         
         customer.orders.push(orderId);
         
-        const billData = {order, customer, billPayment, subTotal, discount, instructionNote}
+        const billData = {order, customer, billPayment, subTotal, discount, instructionNote,orderTaker}
         let generatedMTML;
         try {
             (async()=>{

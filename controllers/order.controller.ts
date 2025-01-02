@@ -197,10 +197,6 @@ export const addOrder = CatchAsyncError(async(req: Request, res: Response, next:
         if(customer.orders.includes(orderId)){
             return next(new ErrorHandler("cannot place a pre-existing order",400));
         }
-        const createdByUser = await userModel.findById(createdBy).name
-        if(!createdByUser){
-            return next(new ErrorHandler("user not found",400));
-        }
         const cart:any = order.cart;
         let total = calculateBill(cart);
         let discount = calculateDiscount(cart);

@@ -15,7 +15,7 @@ export const invoiceHTML = async (billData: any, logoPath: string) => {
       return new ErrorHandler("something went wrong",400)
     }
   }
-  userDetail();
+  await userDetail();
 
   const credit = Number(udhar) - (Number(subTotal) - Number(billPayment));
 
@@ -120,7 +120,7 @@ export const invoiceHTML = async (billData: any, logoPath: string) => {
   <body>
     <div class="invoice-container">
       <div class="header">
-        <img src="${logoPath}" alt="Company Logo" />
+        <img src=${'https://github.com/abdulrehmanmazhar/pos-server/blob/main/public/OG.png?raw=true'} alt="Company Logo" />
         <h2>Invoice OG Cola Hafizabad</h2>
       </div>
 

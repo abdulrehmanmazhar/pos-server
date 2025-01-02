@@ -1,26 +1,25 @@
 import userModel from "../models/user.model";
 import ErrorHandler from "../utils/ErrorHandler";
 
-export const invoiceHTML = async (billData: any, logoPath: string) => {
+export const invoiceHTML = async (billData: any) => {
   const { order, customer, billPayment, subTotal, discount, instructionNote } = billData;
   const { name, address, contact, udhar } = customer;
   const { cart, total, payment, createdBy } = order;
-  let username = "somebody"
 
-  const userDetail = async()=>{
-    try {
-      const user = await userModel.findById(createdBy);
-      username = user?.name
-    } catch (error) {
-      return new ErrorHandler("something went wrong",400)
-    }
+  // Fetch the username of the creator
+  let username = "Unknown";
+  try {
+    const user = await userModel.findById(createdBy);
+    if (user?.name) username = user.name;
+  } catch (error) {
+    throw new ErrorHandler("Failed to retrieve user details.", 400);
   }
-  await userDetail();
 
+  // Calculate remaining credit
   const credit = Number(udhar) - (Number(subTotal) - Number(billPayment));
 
   // Generate table rows dynamically based on the cart
-  const cartRows = await cart
+  const cartRows = cart
     .map((item: any, index: number) => {
       const { product, qty } = item;
       const totalPrice = qty * product.price; // Calculate total price for the row
@@ -29,12 +28,12 @@ export const invoiceHTML = async (billData: any, logoPath: string) => {
           <td>${index + 1}</td> <!-- Serial Number -->
           <td>${product.name} (${product.category})</td> <!-- Product Name & Category -->
           <td>${qty}</td> <!-- Quantity -->
-          <td>${product.price}</td> <!-- Price per Unit -->
+          <td>${product.price.toFixed(2)}</td> <!-- Price per Unit -->
           <td>${totalPrice.toFixed(2)}</td> <!-- Total Price -->
         </tr>
       `;
     })
-    .join(""); // Combine all rows into a single string
+    .join("");
 
   const formattedDate = new Date().toLocaleDateString("en-GB");
 
@@ -73,23 +72,16 @@ export const invoiceHTML = async (billData: any, logoPath: string) => {
         margin: 0;
         font-size: 24px;
       }
-      .header p {
-        margin: 5px 0;
-        color: #777;
-      }
       .details-container {
         display: flex;
         justify-content: space-between;
         margin-bottom: 20px;
       }
       .customer-details, .company-details {
-        width: 48%; /* Each child takes 48% width with some margin */
+        width: 48%;
       }
       .company-details {
         text-align: right;
-      }
-      .details-container h3 {
-        margin-top: 0;
       }
       .date {
         text-align: right;
@@ -120,7 +112,6 @@ export const invoiceHTML = async (billData: any, logoPath: string) => {
   <body>
     <div class="invoice-container">
       <div class="header">
-        <img src=${'https://github.com/abdulrehmanmazhar/pos-server/blob/main/public/OG.png?raw=true'} alt="Company Logo" />
         <h2>Invoice OG Cola Hafizabad</h2>
       </div>
 
@@ -133,7 +124,7 @@ export const invoiceHTML = async (billData: any, logoPath: string) => {
           <p><strong>Name:</strong> ${name}</p>
           <p><strong>Address:</strong> ${address}</p>
           <p><strong>Contact:</strong> ${contact}</p>
-          <p><strong>Previous Dues:</strong> ${credit} PKR</p>
+          <p><strong>Previous Dues:</strong> ${credit.toFixed(2)} PKR</p>
         </div>
 
         <!-- Company Details -->
@@ -164,11 +155,11 @@ export const invoiceHTML = async (billData: any, logoPath: string) => {
           </tr>
           <tr>
             <td colspan="4" class="total-row">Discount:</td>
-            <td>${(discount)?.toFixed(2)} PKR</td>
+            <td>${discount?.toFixed(2)} PKR</td>
           </tr>
           <tr>
             <td colspan="4" class="total-row">Subtotal:</td>
-            <td>${(subTotal)?.toFixed(2)} PKR</td>
+            <td>${subTotal?.toFixed(2)} PKR</td>
           </tr>
           <tr>
             <td colspan="4" class="total-row">Payment:</td>
@@ -176,14 +167,15 @@ export const invoiceHTML = async (billData: any, logoPath: string) => {
           </tr>
           <tr>
             <td colspan="4" class="total-row">Remaining:</td>
-            <td>${(subTotal - billPayment + credit)?.toFixed(2)} PKR</td>
+            <td>${(subTotal - billPayment + credit).toFixed(2)} PKR</td>
           </tr>
         </tfoot>
       </table>
+
+      <!-- Instruction Note -->
+      <p style="margin-top: 20px; font-style: italic; color: #555;">${instructionNote}</p>
     </div>
   </body>
-  <p>${instructionNote}</p>
   </html>
   `;
 };
-

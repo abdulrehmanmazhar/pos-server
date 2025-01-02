@@ -13,6 +13,9 @@ import analyticsRouter from "./routes/analytics.route"
 import { PDFgenerator } from "./utils/puppeteer";
 import path from "path"
 
+app.use(express.static('public'));
+
+
 // body parser
 app.use(express.json({ limit: "50kb" }));
 

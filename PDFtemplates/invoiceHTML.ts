@@ -2,7 +2,7 @@ import userModel from "../models/user.model";
 import ErrorHandler from "../utils/ErrorHandler";
 
 export const invoiceHTML = async (billData: any, logoPath: string) => {
-  const { order, customer, billPayment, subTotal, discount,createdByUser, instructionNote } = billData;
+  const { order, customer, billPayment, subTotal, discount, instructionNote } = billData;
   const { name, address, contact, udhar } = customer;
   const { cart, total, payment, createdBy } = order;
   let username = "somebody"

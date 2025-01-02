@@ -256,7 +256,7 @@ export const addOrder = CatchAsyncError(async(req: Request, res: Response, next:
         
         customer.orders.push(orderId);
         
-        const billData = {order, customer, billPayment, subTotal, discount, createdByUser, instructionNote}
+        const billData = {order, customer, billPayment, subTotal, discount, instructionNote}
         let generatedMTML;
         try {
             (async()=>{

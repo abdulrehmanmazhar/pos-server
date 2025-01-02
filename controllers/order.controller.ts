@@ -13,12 +13,12 @@ import fs from "fs";
 import { invoiceHTML } from "../PDFtemplates/invoiceHTML";
 import TransactionModel from "../models/transaction.model";
 import calculateDiscount from "../utils/calculateDiscount";
-import logoPath from "../public/OG.png"
 import userModel from "../models/user.model";
 interface CustomerOrder {
     product: IProduct;
     qty: number;
 }
+const logoPath = "../public/OG.png"
 
 export const createCart = CatchAsyncError(async(req: Request, res: Response, next: NextFunction)=>{
     try {

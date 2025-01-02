@@ -1,7 +1,21 @@
+import userModel from "../models/user.model";
+import ErrorHandler from "../utils/ErrorHandler";
+
 export const invoiceHTML = async (billData: any, logoPath: string) => {
   const { order, customer, billPayment, subTotal, discount,createdByUser, instructionNote } = billData;
   const { name, address, contact, udhar } = customer;
-  const { cart, total, payment } = order;
+  const { cart, total, payment, createdBy } = order;
+  let username = "somebody"
+
+  const userDetail = async()=>{
+    try {
+      const user = await userModel.findById(createdBy);
+      username = user?.name
+    } catch (error) {
+      return new ErrorHandler("something went wrong",400)
+    }
+  }
+  userDetail();
 
   const credit = Number(udhar) - (Number(subTotal) - Number(billPayment));
 
@@ -126,7 +140,7 @@ export const invoiceHTML = async (billData: any, logoPath: string) => {
         <div class="company-details">
           <p><strong>Contact:</strong> 03436768695</p>
           <p><strong>Sales Manager:</strong> Talha Ahsan</p>
-          <p><strong>Order Taker:</strong> ${createdByUser.name}</p>
+          <p><strong>Order Taker:</strong> ${username}</p>
         </div>
       </div>
 
@@ -172,3 +186,4 @@ export const invoiceHTML = async (billData: any, logoPath: string) => {
   </html>
   `;
 };
+

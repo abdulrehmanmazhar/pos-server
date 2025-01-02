@@ -13,6 +13,8 @@ import fs from "fs";
 import { invoiceHTML } from "../PDFtemplates/invoiceHTML";
 import TransactionModel from "../models/transaction.model";
 import calculateDiscount from "../utils/calculateDiscount";
+import logoPath from "../public/OG.png"
+import userModel from "../models/user.model";
 interface CustomerOrder {
     product: IProduct;
     qty: number;
@@ -35,15 +37,15 @@ export const createCart = CatchAsyncError(async(req: Request, res: Response, nex
         if(!product.inStock){
             return next(new ErrorHandler("Product out of stock", 400));
         }
-        if(qty> product.stockQty){
-            return next(new ErrorHandler("Order should not exceed the stock limit",400))
-        }
+        // if(qty> product.stockQty){
+        //     return next(new ErrorHandler("Order should not exceed the stock limit",400))
+        // }
         const unDoneOrder = await OrderModel.findOne({customerId, bill: { $exists: false }})
         
         
         const stockMinus = product.stockQty-qty;
         product.stockQty = stockMinus;
-        if(stockMinus === 0){
+        if(stockMinus <= 0){
             product.inStock = false;
         }
         await product.save();
@@ -180,7 +182,7 @@ export const deleteCart = CatchAsyncError(async(req: Request, res: Response, nex
 export const addOrder = CatchAsyncError(async(req: Request, res: Response, next: NextFunction)=>{
     try {
         const {id: orderId} = req.params;
-        let {billPayment, customerId} = req.body;
+        let {billPayment, customerId, instructionNote} = req.body;
         const createdBy= req.user._id;
 
         // billPayment = parseInt(billPayment,10);
@@ -194,6 +196,10 @@ export const addOrder = CatchAsyncError(async(req: Request, res: Response, next:
         }
         if(customer.orders.includes(orderId)){
             return next(new ErrorHandler("cannot place a pre-existing order",400));
+        }
+        const createdByUser = await userModel.findById(createdBy).name
+        if(!createdByUser){
+            return next(new ErrorHandler("user not found",400));
         }
         const cart:any = order.cart;
         let total = calculateBill(cart);
@@ -254,11 +260,11 @@ export const addOrder = CatchAsyncError(async(req: Request, res: Response, next:
         
         customer.orders.push(orderId);
         
-        const billData = {order, customer, billPayment, subTotal, discount}
+        const billData = {order, customer, billPayment, subTotal, discount, createdByUser, instructionNote}
         let generatedMTML;
         try {
             (async()=>{
-                generatedMTML= await invoiceHTML(billData)
+                generatedMTML= await invoiceHTML(billData,logoPath)
             })()
         } catch (error) {
             return next(new ErrorHandler("Error generating bill HTML",500))

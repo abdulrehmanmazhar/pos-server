@@ -1,7 +1,7 @@
-export const invoiceHTML = async (billData: any) => {
-  const { order, customer, billPayment, subTotal, discount } = billData;
+export const invoiceHTML = async (billData: any, logoPath: string) => {
+  const { order, customer, billPayment, subTotal, discount,createdByUser, instructionNote } = billData;
   const { name, address, contact, udhar } = customer;
-  const { cart, total, payment, } = order;
+  const { cart, total, payment } = order;
 
   const credit = Number(udhar) - (Number(subTotal) - Number(billPayment));
 
@@ -50,6 +50,10 @@ export const invoiceHTML = async (billData: any) => {
       .header {
         text-align: center;
         margin-bottom: 20px;
+      }
+      .header img {
+        max-width: 150px;
+        margin-bottom: 10px;
       }
       .header h1 {
         margin: 0;
@@ -102,8 +106,8 @@ export const invoiceHTML = async (billData: any) => {
   <body>
     <div class="invoice-container">
       <div class="header">
-        <h1>SATTAR ENTERPRISES HAFIZABAD</h1>
-        <h2>Invoice</h2>
+        <img src="${logoPath}" alt="Company Logo" />
+        <h2>Invoice OG Cola Hafizabad</h2>
       </div>
 
       <div class="date">Date: ${formattedDate}</div>
@@ -120,8 +124,9 @@ export const invoiceHTML = async (billData: any) => {
 
         <!-- Company Details -->
         <div class="company-details">
-          <p><strong>Contact:</strong> 03xx-xxxxxxx</p>
+          <p><strong>Contact:</strong> 03436768695</p>
           <p><strong>Sales Manager:</strong> Talha Ahsan</p>
+          <p><strong>Order Taker:</strong> ${createdByUser.name}</p>
         </div>
       </div>
 
@@ -163,6 +168,7 @@ export const invoiceHTML = async (billData: any) => {
       </table>
     </div>
   </body>
+  <p>${instructionNote}</p>
   </html>
   `;
 };

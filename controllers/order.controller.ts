@@ -14,6 +14,7 @@ import { invoiceHTML } from "../PDFtemplates/invoiceHTML";
 import TransactionModel from "../models/transaction.model";
 import calculateDiscount from "../utils/calculateDiscount";
 import userModel from "../models/user.model";
+import ProductSaleModel from "../models/productSale.model";
 interface CustomerOrder {
     product: IProduct;
     qty: number;
@@ -34,9 +35,9 @@ export const createCart = CatchAsyncError(async(req: Request, res: Response, nex
         if(!product){
             return next(new ErrorHandler("Product corresponding to this ID is not found",400));
         }
-        if(!product.inStock){
-            return next(new ErrorHandler("Product out of stock", 400));
-        }
+        // if(!product.inStock){
+        //     return next(new ErrorHandler("Product out of stock", 400));
+        // }
         // if(qty> product.stockQty){
         //     return next(new ErrorHandler("Order should not exceed the stock limit",400))
         // }
@@ -49,6 +50,7 @@ export const createCart = CatchAsyncError(async(req: Request, res: Response, nex
             product.inStock = false;
         }
         await product.save();
+        await ProductSaleModel.create({customerId, productId, stockQtyLeft: stockMinus, sold: qty });
 
         item.product = product;
         item.qty = qty;
@@ -159,6 +161,7 @@ export const deleteCart = CatchAsyncError(async(req: Request, res: Response, nex
                 oldproduct.inStock = true;
             }
             await oldproduct.save(); 
+            await ProductSaleModel.create({customerId:order.customerId, productId:oldproduct._id, stockQtyLeft: oldproduct.stockQty, sold: Number(-oldProductStock) });
 
 
             

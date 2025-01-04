@@ -6,6 +6,7 @@ export interface ITransaction extends Document{
     amount: number;
     description: string;
     orderId: string;
+    proofImage: string;
     createdBy: string;
 
 };
@@ -14,6 +15,7 @@ export const TransactionSchema = new Schema<ITransaction>({
     amount:{type: Number, required: true},
     description:{type: String, required: true},
     orderId: {type: String},
+    proofImage: {type: String},
     createdBy: { type: String, required: true },
 },{timestamps: true});
 

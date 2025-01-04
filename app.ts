@@ -10,8 +10,10 @@ import productRouter from "./routes/product.route"
 import orderRouter from "./routes/order.route"
 import transactionRouter from "./routes/transaction.route"
 import analyticsRouter from "./routes/analytics.route"
+import productSaleRouter from "./routes/productSale.route"
 import { PDFgenerator } from "./utils/puppeteer";
-import path from "path"
+import fs from 'fs';
+import path from 'path';
 
 app.use(express.static('public'));
 
@@ -38,6 +40,7 @@ app.use("/api/v1", productRouter);
 app.use("/api/v1", orderRouter);
 app.use("/api/v1", transactionRouter);
 app.use("/api/v1", analyticsRouter);
+app.use("/api/v1", productSaleRouter);
 
 // Route to serve specific bill files
 app.get('/api/v1/bills/:filename', (req, res) => {
@@ -52,6 +55,25 @@ app.get('/api/v1/bills/:filename', (req, res) => {
         }
     });
 });
+app.get('/api/v1/uploads/:filename', (req, res) => {
+    const filename = req.params.filename; 
+    const filePath = path.join(__dirname, 'public/uploads', filename);
+
+    // Serve the file
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            console.error(err);
+            res.status(404).send('File not found');
+        }
+    });
+});
+
+
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 
 app.get("/test", PDFgenerator);
 

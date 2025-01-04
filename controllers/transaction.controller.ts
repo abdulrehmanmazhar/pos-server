@@ -3,37 +3,69 @@ require("dotenv").config();
 import express, { Request, Response, NextFunction } from "express";
 import ErrorHandler from "../utils/ErrorHandler";
 import { CatchAsyncError } from "../middleware/catchAsyncError";
-
+import path from "path";
+import multer from "multer";
 import TransactionModel from "../models/transaction.model";
+import fs from "fs";
 
-export const createTransaction = CatchAsyncError(async(req: Request, res: Response, next: NextFunction)=>{
-    try {
-        const {type, amount, description, orderId} = req.body;
-        const createdBy= req.user._id;
-        if(type && amount && description){
-            let transaction;
-            if(type === "sale"){
-            transaction = await TransactionModel.create({type, amount, description, orderId});
-
-            }
-            if(type === "expense"){
-                transaction = await TransactionModel.create({type, amount, description, createdBy});
-            }
-            if (!transaction){
-                return next(new ErrorHandler("Error happend while creating transaction",500))
-            }
-            res.status(200).json({
-                success: true,
-                transaction
-            })
-        }
-        return next(new ErrorHandler("Some argument is missing",400))
-    } catch (error) {
-        return next(new ErrorHandler(error.message,500))
-        
+const uploadDir = path.join(__dirname, "..", "public", "uploads");
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
     }
-})
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, "..","public","uploads")); // Use an absolute path to avoid errors
+    },
+    
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
+    },
+  });
+  
+  const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  };
+  
+  const upload = multer({ storage, fileFilter });
 
+  export const createTransaction = [
+    upload.single('proofImage'), // Middleware to handle file uploads
+    CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+      const { type, amount, description, orderId } = req.body;
+      const proofImage = req.file; // File uploaded by multer
+      const createdBy = req.user._id;
+  
+      if (!type || !amount || !description ) {
+        return next(new ErrorHandler("Missing required fields or image file", 400));
+      }
+  
+      const transactionData: any = { type, amount, description, createdBy };
+  
+      if (type === "sale") {
+        transactionData.orderId = orderId;
+      } else if (type === "expense") {
+        if(proofImage){
+            transactionData.proofImage = proofImage.filename; // Save file path to transaction
+        }
+      }
+  
+      const transaction = await TransactionModel.create(transactionData);
+  
+      if (!transaction) {
+        return next(new ErrorHandler("Error occurred while creating transaction", 500));
+      }
+  
+      res.status(200).json({
+        success: true,
+        transaction,
+      });
+    }),
+  ];
 export const deleteTransaction = CatchAsyncError(async(req: Request, res: Response, next: NextFunction)=>{
     try {
         const {id} = req.params;
